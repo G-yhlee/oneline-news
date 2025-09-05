@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/user/Documents/@git-parseto/auth-server/src/routes/auth/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
