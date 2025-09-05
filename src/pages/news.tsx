@@ -39,7 +39,7 @@ export default function NewsPage() {
       if (storedNews) {
         const parsedNews = JSON.parse(storedNews);
         // 기존 데이터에 인증 정보 추가 (마이그레이션)
-        const migratedNews = parsedNews.map((item: any) => ({
+        const migratedNews = parsedNews.map((item: Partial<News>) => ({
           ...item,
           authorId: item.authorId || '',
           authorVerified: item.authorVerified || false

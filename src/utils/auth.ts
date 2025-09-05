@@ -1,5 +1,18 @@
 import { authClient } from "../lib/auth-client";
 
+// Better Auth 사용자 타입 확장
+interface BetterAuthUser {
+  id: string;
+  email: string;
+  name: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  emailVerified: boolean;
+  image?: string | null;
+  isAnonymous?: boolean | null;
+  isValid?: boolean;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -21,7 +34,7 @@ export class AuthService {
     try {
       const session = await authClient.getSession();
       if (session.data?.user) {
-        const user = session.data.user;
+        const user = session.data.user as BetterAuthUser;
         
         // 백엔드에서 최신 사용자 정보 가져오기 (isValid 상태 포함)
         let isValid = user.isValid || false;
