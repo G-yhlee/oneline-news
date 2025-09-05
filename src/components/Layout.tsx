@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { AuthService, AuthUser } from '../utils/auth';
+import UserProfileModal from './UserProfileModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -66,12 +68,20 @@ export default function Layout({ children }: LayoutProps) {
               ) : user ? (
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
-                    <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
+                    <button
+                      onClick={() => setIsProfileModalOpen(true)}
+                      className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center hover:bg-blue-600 transition"
+                    >
                       <span className="text-white font-semibold text-sm">
                         {user.name?.charAt(0).toUpperCase() || '?'}
                       </span>
-                    </div>
-                    <span className="text-sm text-gray-700">{user.name}</span>
+                    </button>
+                    <button
+                      onClick={() => setIsProfileModalOpen(true)}
+                      className="text-sm text-gray-700 hover:text-gray-900"
+                    >
+                      {user.name}
+                    </button>
                   </div>
                   <button
                     onClick={handleSignOut}
@@ -90,6 +100,15 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </nav>
       {children}
+      
+      {user && (
+        <UserProfileModal 
+          isOpen={isProfileModalOpen} 
+          onClose={() => setIsProfileModalOpen(false)}
+          user={user}
+          onUserUpdate={(updatedUser) => setUser(updatedUser)}
+        />
+      )}
     </>
   );
 }

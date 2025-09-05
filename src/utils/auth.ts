@@ -7,6 +7,7 @@ export interface AuthUser {
   createdAt: string;
   updatedAt: string;
   emailVerified: boolean;
+  isValid?: boolean;
 }
 
 export interface SessionData {
@@ -19,8 +20,36 @@ export class AuthService {
   static async getCurrentUser(): Promise<AuthUser | null> {
     try {
       const session = await authClient.getSession();
-      return session.data ? (session.data.user as AuthUser) : null;
-    } catch (error) {
+      if (session.data?.user) {
+        const user = session.data.user;
+        
+        // 백엔드에서 최신 사용자 정보 가져오기 (isValid 상태 포함)
+        let isValid = user.isValid || false;
+        if (user.email) {
+          try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
+            const response = await fetch(`${apiUrl}/users/validation-status/${encodeURIComponent(user.email)}`);
+            if (response.ok) {
+              const data = await response.json();
+              isValid = data.data?.isValid || false;
+            }
+          } catch (error) {
+            console.warn('Failed to fetch validation status:', error);
+          }
+        }
+        
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          createdAt: user.createdAt?.toString() || '',
+          updatedAt: user.updatedAt?.toString() || '',
+          emailVerified: user.emailVerified,
+          isValid: isValid
+        };
+      }
+      return null;
+    } catch {
       return null;
     }
   }
@@ -29,7 +58,7 @@ export class AuthService {
     try {
       await authClient.signOut();
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -38,7 +67,7 @@ export class AuthService {
     try {
       const session = await authClient.getSession();
       return !!session.data;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -52,7 +81,7 @@ export class AuthService {
     return null; // better-auth가 세션 관리
   }
 
-  static setUserData(user: AuthUser, token?: string): void {
+  static setUserData(): void {
     // better-auth가 자동으로 세션 관리
   }
 

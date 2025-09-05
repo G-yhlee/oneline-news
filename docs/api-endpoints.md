@@ -319,6 +319,183 @@ DELETE /users/cleanup/anonymous
 }
 ```
 
+## OTP Authentication
+
+### Send OTP Code
+
+```
+POST /otp/send
+```
+
+**Request:**
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "OTP sent successfully",
+  "data": {
+    "email": "user@example.com",
+    "userId": "user_abc123_xyz789",
+    "expiresIn": 300
+  }
+}
+```
+
+### Verify OTP Code
+
+```
+POST /otp/verify
+```
+
+**Request:**
+
+```json
+{
+  "email": "user@example.com",
+  "otp": "123456"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "OTP verified successfully",
+  "data": {
+    "email": "user@example.com",
+    "verifiedAt": "2025-09-05T17:30:45.123Z",
+    "isValid": true,
+    "userId": "user_abc123_xyz789"
+  }
+}
+```
+
+### Get Active OTPs (Admin/Development)
+
+```
+GET /otp/active
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "email": "user@example.com",
+      "createdAt": "2025-09-05T17:25:00.000Z",
+      "expiresAt": "2025-09-05T17:30:00.000Z",
+      "isActive": 1
+    }
+  ],
+  "count": 1
+}
+```
+
+### Cleanup Expired OTPs
+
+```
+DELETE /otp/cleanup
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Cleaned up 5 expired OTPs",
+  "deletedCount": 5
+}
+```
+
+### Get Validated Users
+
+```
+GET /users/validated
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "user_abc123_xyz789",
+      "email": "user@example.com",
+      "emailVerified": false,
+      "name": null,
+      "image": null,
+      "createdAt": "2025-09-05T17:20:00.000Z",
+      "updatedAt": "2025-09-05T17:30:45.123Z",
+      "isAnonymous": null,
+      "isValid": true
+    }
+  ],
+  "count": 1
+}
+```
+
+### Check User Validation Status
+
+```
+GET /users/validation-status/:email
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "email": "user@example.com",
+    "isValid": true,
+    "emailVerified": false,
+    "userId": "user_abc123_xyz789",
+    "createdAt": "2025-09-05T17:20:00.000Z",
+    "updatedAt": "2025-09-05T17:30:45.123Z"
+  }
+}
+```
+
+### Manually Validate User (Admin)
+
+```
+POST /users/validate
+```
+
+**Request:**
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "User validated successfully",
+  "data": {
+    "email": "user@example.com",
+    "isValid": true,
+    "userId": "user_abc123_xyz789"
+  }
+}
+```
+
 ### Error Responses
 
 All endpoints can return error responses in this format:

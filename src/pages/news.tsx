@@ -7,6 +7,8 @@ interface News {
   id: string;
   content: string;
   author: string;
+  authorId: string;
+  authorVerified: boolean;
   createdAt: string;
 }
 
@@ -32,10 +34,19 @@ export default function NewsPage() {
         setUser(userData);
       }
 
-      // 뉴스 데이터 로드
+      // 뉴스 데이터 로드 및 마이그레이션
       const storedNews = localStorage.getItem('newsData');
       if (storedNews) {
-        setNews(JSON.parse(storedNews));
+        const parsedNews = JSON.parse(storedNews);
+        // 기존 데이터에 인증 정보 추가 (마이그레이션)
+        const migratedNews = parsedNews.map((item: any) => ({
+          ...item,
+          authorId: item.authorId || '',
+          authorVerified: item.authorVerified || false
+        }));
+        setNews(migratedNews);
+        // 마이그레이션된 데이터 저장
+        localStorage.setItem('newsData', JSON.stringify(migratedNews));
       }
       
       setIsLoading(false);
@@ -52,6 +63,8 @@ export default function NewsPage() {
       id: Date.now().toString(),
       content: newNews,
       author: user?.name || '익명',
+      authorId: user?.id || '',
+      authorVerified: user?.isValid || false,
       createdAt: new Date().toISOString()
     };
 
@@ -110,8 +123,16 @@ export default function NewsPage() {
                 등록
               </button>
             </div>
-            <div className="mt-2 text-sm text-gray-500">
-              {user?.name}님으로 작성
+            <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
+              <span>{user?.name}님으로 작성</span>
+              {user?.isValid && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  인증됨
+                </span>
+              )}
             </div>
           </div>
         </form>
@@ -123,15 +144,30 @@ export default function NewsPage() {
             </div>
           ) : (
             news.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition">
+              <div 
+                key={item.id} 
+                className={`rounded-lg shadow-sm p-4 hover:shadow-md transition ${
+                  item.authorVerified 
+                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500' 
+                    : 'bg-white'
+                }`}
+              >
                 <div className="flex justify-between items-start">
                   <p className="text-gray-800 flex-1">{item.content}</p>
                   <span className="text-xs text-gray-500 ml-4 whitespace-nowrap">
                     {formatDate(item.createdAt)}
                   </span>
                 </div>
-                <div className="mt-2 text-sm text-gray-500">
-                  by {item.author}
+                <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
+                  <span>by {item.author}</span>
+                  {item.authorVerified && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      인증됨
+                    </span>
+                  )}
                 </div>
               </div>
             ))
