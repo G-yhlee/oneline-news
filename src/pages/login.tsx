@@ -22,6 +22,23 @@ export default function Login() {
       setIsLoading(true);
       setError(null);
 
+      // 현재 로그인된 사용자 확인
+      const currentUser = await AuthService.getCurrentUser();
+      
+      // 이미 익명으로 로그인되어 있다면 바로 뉴스 페이지로 이동
+      if (currentUser && (
+        (currentUser.email && currentUser.email.includes('temp-')) || 
+        currentUser.name === 'Anonymous'
+      )) {
+        await router.push("/news");
+        return;
+      }
+
+      // 익명이 아닌 다른 계정으로 로그인되어 있다면 먼저 로그아웃
+      if (currentUser) {
+        await AuthService.signOut();
+      }
+
       const result = await authClient.signIn.anonymous();
       
       if (result.error) {
@@ -30,7 +47,6 @@ export default function Login() {
       }
 
       if (result.data) {
-        // better-auth가 자동으로 세션을 관리하므로 별도 저장 불필요
         await router.push("/news");
       }
     } catch (error) {

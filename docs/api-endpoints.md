@@ -131,60 +131,140 @@ Authorization: Bearer {token}
 
 ## User Management
 
-### Find All Users
+### Get All Users
 
 ```
-GET /api/infoUsers
+GET /users
 ```
 
 **Response:**
 
 ```json
-[
-  {
-    "id": 1,
-    "email": "user@example.com",
-    "name": "User Name"
-  }
-]
-```
-
-### Create User
-
-```
-POST /api/infoUsers
-```
-
-**Request:**
-
-```json
 {
-  "email": "user@example.com",
-  "name": "User Name"
+  "success": true,
+  "data": [
+    {
+      "id": "tSMIMbcGnqoGpk2y1v3Lekg4WPy7ryAw",
+      "email": "temp-xxx@http://localhost:3333",
+      "emailVerified": false,
+      "name": "Anonymous",
+      "image": null,
+      "createdAt": "2025-09-05T16:45:18.451Z",
+      "updatedAt": "2025-09-05T16:45:18.451Z",
+      "isAnonymous": 1
+    }
+  ],
+  "count": 5
 }
 ```
 
+### Get Anonymous Users Only
+
+```
+GET /users/anonymous
+```
+
 **Response:**
 
 ```json
 {
-  "id": 1,
-  "email": "user@example.com",
-  "name": "User Name"
+  "success": true,
+  "data": [
+    {
+      "id": "tSMIMbcGnqoGpk2y1v3Lekg4WPy7ryAw",
+      "email": "temp-xxx@http://localhost:3333",
+      "name": "Anonymous",
+      "isAnonymous": 1,
+      "createdAt": "2025-09-05T16:45:18.451Z"
+    }
+  ],
+  "count": 3
+}
+```
+
+### Get OAuth Users Only
+
+```
+GET /users/oauth
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "abc123",
+      "email": "user@gmail.com",
+      "name": "John Doe",
+      "image": "https://avatars.googleapis.com/u/123",
+      "emailVerified": true,
+      "isAnonymous": 0,
+      "createdAt": "2025-09-05T10:30:00.000Z"
+    }
+  ],
+  "count": 2
+}
+```
+
+### Get User Statistics
+
+```
+GET /users/stats
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total": 5,
+    "anonymous": 3,
+    "oauth": 2,
+    "verified": 2
+  }
+}
+```
+
+### Get User by ID
+
+```
+GET /users/:id
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "tSMIMbcGnqoGpk2y1v3Lekg4WPy7ryAw",
+    "email": "temp-xxx@http://localhost:3333",
+    "name": "Anonymous",
+    "image": null,
+    "emailVerified": false,
+    "isAnonymous": 1,
+    "createdAt": "2025-09-05T16:45:18.451Z",
+    "updatedAt": "2025-09-05T16:45:18.451Z"
+  }
 }
 ```
 
 ### Update User
 
 ```
-PUT /api/infoUsers/:id
+PUT /users/:id
 ```
 
 **Request:**
 
 ```json
 {
-  "name": "Updated Name"
+  "name": "Updated Name",
+  "email": "newemail@example.com",
+  "image": "https://example.com/avatar.jpg"
 }
 ```
 
@@ -192,22 +272,67 @@ PUT /api/infoUsers/:id
 
 ```json
 {
-  "id": 1,
-  "email": "user@example.com",
-  "name": "Updated Name"
+  "success": true,
+  "data": {
+    "id": "tSMIMbcGnqoGpk2y1v3Lekg4WPy7ryAw",
+    "email": "newemail@example.com",
+    "name": "Updated Name",
+    "image": "https://example.com/avatar.jpg",
+    "emailVerified": false,
+    "isAnonymous": 1,
+    "createdAt": "2025-09-05T16:45:18.451Z",
+    "updatedAt": "2025-09-05T16:55:30.123Z"
+  },
+  "message": "User updated successfully"
 }
 ```
 
-### Delete User
+### Delete User (Withdrawal)
 
 ```
-DELETE /api/infoUsers/:id
+DELETE /users/:id
 ```
 
 **Response:**
 
 ```json
 {
-  "success": true
+  "success": true,
+  "message": "User deleted successfully",
+  "deletedUserId": "tSMIMbcGnqoGpk2y1v3Lekg4WPy7ryAw"
 }
 ```
+
+### Clean up Anonymous Users
+
+```
+DELETE /users/cleanup/anonymous
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Deleted 3 anonymous users",
+  "deletedCount": 3
+}
+```
+
+### Error Responses
+
+All endpoints can return error responses in this format:
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+
+Common HTTP status codes:
+
+- `200` - Success
+- `400` - Bad Request (invalid input)
+- `404` - User Not Found
+- `500` - Internal Server Error

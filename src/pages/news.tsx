@@ -61,10 +61,6 @@ export default function NewsPage() {
     setNewNews('');
   };
 
-  const handleLogout = async () => {
-    await AuthService.signOut();
-    router.push('/login');
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -91,31 +87,11 @@ export default function NewsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">📰 한줄뉴스</h1>
-          <div className="flex items-center gap-4">
-            {user && (
-              <div className="flex items-center">
-                <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {user.name?.charAt(0).toUpperCase() || '?'}
-                  </span>
-                </div>
-                <span className="ml-2 text-sm text-gray-700">{user.name}</span>
-              </div>
-            )}
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
-            >
-              로그아웃
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">📰 한줄뉴스</h1>
+          <p className="text-gray-600">오늘의 뉴스를 한 줄로 공유해보세요</p>
+        </div>
         <form onSubmit={handleSubmit} className="mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex gap-2">
