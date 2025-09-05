@@ -1,115 +1,141 @@
-import Image from "next/image";
-import localFont from "next/font/local";
+import { useState, useEffect } from 'react';
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+interface News {
+  id: string;
+  content: string;
+  author: string;
+  createdAt: string;
+}
 
 export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [news, setNews] = useState<News[]>([]);
+  const [newNews, setNewNews] = useState('');
+  const [authorName, setAuthorName] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    // Load news from localStorage
+    const storedNews = localStorage.getItem('newsData');
+    if (storedNews) {
+      setNews(JSON.parse(storedNews));
+    }
+
+    // Check if user is logged in
+    const username = localStorage.getItem('username');
+    if (username) {
+      setIsLoggedIn(true);
+      setAuthorName(username);
+    }
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNews.trim()) return;
+
+    const newsItem: News = {
+      id: Date.now().toString(),
+      content: newNews,
+      author: isLoggedIn ? authorName : `익명${Math.floor(Math.random() * 1000)}`,
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedNews = [newsItem, ...news];
+    setNews(updatedNews);
+    localStorage.setItem('newsData', JSON.stringify(updatedNews));
+    setNewNews('');
+  };
+
+  const handleLogin = () => {
+    const name = prompt('사용자 이름을 입력하세요:');
+    if (name) {
+      localStorage.setItem('username', name);
+      setAuthorName(name);
+      setIsLoggedIn(true);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('username');
+    setIsLoggedIn(false);
+    setAuthorName('');
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return '방금 전';
+    if (minutes < 60) return `${minutes}분 전`;
+    if (hours < 24) return `${hours}시간 전`;
+    if (days < 7) return `${days}일 전`;
+    return date.toLocaleDateString('ko-KR');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">📰 한줄뉴스</h1>
+          <button
+            onClick={isLoggedIn ? handleLogout : handleLogin}
+            className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {isLoggedIn ? `${authorName} (로그아웃)` : '로그인'}
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        <form onSubmit={handleSubmit} className="mb-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newNews}
+                onChange={(e) => setNewNews(e.target.value)}
+                placeholder="오늘의 뉴스를 한 줄로 작성해주세요..."
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                maxLength={100}
+              />
+              <button
+                type="submit"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                등록
+              </button>
+            </div>
+            <div className="mt-2 text-sm text-gray-500">
+              {isLoggedIn ? `${authorName}님으로 작성` : '익명으로 작성'}
+            </div>
+          </div>
+        </form>
+
+        <div className="space-y-3">
+          {news.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              아직 등록된 뉴스가 없습니다. 첫 번째 뉴스를 작성해보세요!
+            </div>
+          ) : (
+            news.map((item) => (
+              <div key={item.id} className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition">
+                <div className="flex justify-between items-start">
+                  <p className="text-gray-800 flex-1">{item.content}</p>
+                  <span className="text-xs text-gray-500 ml-4 whitespace-nowrap">
+                    {formatDate(item.createdAt)}
+                  </span>
+                </div>
+                <div className="mt-2 text-sm text-gray-500">
+                  by {item.author}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
